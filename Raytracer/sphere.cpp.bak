@@ -1,0 +1,103 @@
+/* 
+ * File:   sphere.cpp
+ * Author: onkeliroh
+ * 
+ * Created on 28. August 2011, 17:51
+ */
+
+#include "sphere.hpp"
+#include "shape.hpp"
+#include <string>
+#include <cmath>
+#include <iostream>
+#include "material.hpp"
+#include "../include/point.hpp"
+#include "../include/vector.hpp"
+#include "ray_info.hpp"
+#include "../include/matrix.hpp"
+
+
+sphere::sphere():
+shape(), middle_(),radius_(1)
+{}
+
+sphere::sphere(math3d::point const& m, double const& r, std::string const& name, material const& mat):
+shape(name, mat), middle_(m),radius_(r)
+{}
+
+sphere::sphere(const sphere& orig):
+shape(orig), middle_(orig.middle_), radius_(orig.radius_)
+{}
+
+sphere::~sphere() 
+{}
+
+bool sphere::is_inside(math3d::point const& p) const
+{
+     return (sqrt(pow((middle_[0]-p[0]),2)+pow(middle_[1]-p[1],2)+pow(middle_[2]-p[2],2)))<=radius_;
+}
+
+math3d::point sphere::getmiddle() const
+{
+    return middle_;
+}
+
+double sphere::getradius() const
+{
+    return radius_;
+}
+
+void sphere::print_on(std::ostream& str) const
+{
+    shape::print_on(str);
+    str<<"middle_: "<<middle_<<std::endl<<"radius_: "<<radius_<<std::endl;
+}
+
+ray_info sphere::intersect(math3d::point const& p, math3d::vector const& v) const
+{
+    ray_info rv;
+    rv.hit=true;
+//    double wurzel = pow((2*middle_[0]+2*middle_[1]+2*middle_[2])*v.length(),2)-4*((middle_[0]*middle_[0]+middle_[1]*middle_[1]+middle_[2]*middle_[2])-pow(radius_,2));
+//    if (wurzel >= 0)
+//    {
+//        double t1= 0.5*(-((2*middle_[0]+2*middle_[1]+2*middle_[2])*v.length())-sqrt(wurzel));
+//        double t2= 0.5*(-((2*middle_[0]+2*middle_[1]+2*middle_[2])*v.length())+sqrt(wurzel));
+//        
+//        if (t2 <= t1) {rv.t=t2;return rv;}
+//        if (t2 >= t1) {rv.t=t1;return rv;}
+//    }
+//    else
+//    {
+//        rv.hit=false;
+//        return rv;
+//    }
+    double a = 1;
+    math3d::vector pm = p-middle_;
+    double b = 2* pm.length() *v.length();
+    double c = pm.length() * pm.length() -radius_;
+    
+    double t1=(-b + sqrt(b*b-4*c))/(2);
+    double t2=(-b - sqrt(b*b-4*c))/(2);
+    
+    if (t2 <= t1) {rv.t=t2;return rv;}
+    if (t2 >= t1) {rv.t=t1;return rv;}
+    else {rv.hit = false; return rv;}
+}
+
+void sphere::rotatex(float const& w) const
+{
+    
+}
+
+void sphere::transform(math3d::vector const& v0) const
+{
+    math3d::matrix m1(0,0,0,v0[0],0,0,0,v0[1],0,0,0,v0[2],0,0,0,1);
+    middle_[3]=1;
+    middle_=middle_*m1;
+}
+
+void sphere::scale(math3d::point const& p0) const
+{
+    math3d::vector v0 = p0-middle_;
+    radius_=v0.length();
+}
